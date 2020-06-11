@@ -55,7 +55,7 @@ namespace BFYOC.Functions
                 // not found
                 return new NotFoundObjectResult($"No rating with id:{ratingid} was found");
             }
-            
+            // should not get here if no results
             string message = JsonConvert.SerializeObject(ratings[0]);
 
             string responseMessage = $"got rating: {ratingid}.\n" + message;
