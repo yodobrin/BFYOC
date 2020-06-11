@@ -50,6 +50,11 @@ namespace BFYOC.Functions
                     ratings.Add(rating);
                 }
             }
+            if(ratings.Count == 0)
+            {
+                // not found
+                return new NotFoundObjectResult($"No rating for userid:{userid} were found");
+            }
             string message = JsonConvert.SerializeObject(ratings);
 
             string responseMessage = $"got user id: {userid}:\n" + message;

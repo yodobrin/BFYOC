@@ -16,7 +16,7 @@ using BFYOC.Models;
 
 namespace BFYOC.Functions
 {
-    public static class GetRating
+    public static class GetRating 
     {
         [FunctionName("GetRating")]
         public static async Task<IActionResult> Run(
@@ -50,7 +50,12 @@ namespace BFYOC.Functions
                     ratings.Add(rating);
                 }
             }
-
+            if(ratings.Count == 0)
+            {
+                // not found
+                return new NotFoundObjectResult($"No rating with id:{ratingid} was found");
+            }
+            
             string message = JsonConvert.SerializeObject(ratings[0]);
 
             string responseMessage = $"got rating: {ratingid}.\n" + message;
