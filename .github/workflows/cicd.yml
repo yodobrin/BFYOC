@@ -30,9 +30,9 @@ jobs:
       - name: 'Run dotnet build'
         shell: bash
         run: |
-          # If your function app project is not located in your repository's root
-          # Please consider using pushd to change your path
-          # pushd .
+          pushd .
+          pwd
+          ls
           dotnet build --configuration Release --output ./output
           popd
       - name: 'Run Azure Functions Action'
