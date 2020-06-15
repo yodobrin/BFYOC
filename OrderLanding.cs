@@ -80,7 +80,7 @@ namespace BFYOC
             HttpClient client = new HttpClient();
             string combineUrl = Environment.GetEnvironmentVariable("COMBINE_URI");
             var payload = CreateCombineRequest(unique,log);
-            log.LogInformation($"calling uri: {combineUrl} with payload: {payload}")
+            log.LogInformation($"calling uri: {combineUrl} with payload: {payload}");
             HttpResponseMessage response = await client.PostAsJsonAsync(combineUrl,payload);
             var responseString = await response.Content.ReadAsStringAsync();
 
