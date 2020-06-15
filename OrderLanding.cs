@@ -82,7 +82,9 @@ namespace BFYOC
             var payload = CreateCombineRequest(unique,log);
             log.LogInformation($"calling uri: {combineUrl} with payload: {payload}");
             HttpResponseMessage response = await client.PostAsJsonAsync(combineUrl,payload);
+            log.LogInformation($"got response: {response.StatusCode}");
             var responseString = await response.Content.ReadAsStringAsync();
+            log.LogInformation($"got in combine:{responseString}");
 
             
             return responseString;
