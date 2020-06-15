@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace BFYOC
 {
@@ -21,7 +22,7 @@ namespace BFYOC
         {            
             string connectionString = Environment.GetEnvironmentVariable("ORDER_LANDING_SA");
             string containerName = Environment.GetEnvironmentVariable("ORDER_LANDING_CONTAINER");
-            dynamic eventContent = eventGridEvent.Data.ToString();
+            dynamic eventContent = JsonConvert.DeserializeObject(eventGridEvent.Data.ToString());
             string blobUrl = eventContent?.url;
             log.LogInformation(blobUrl);
             string unique = GetUniqueId(blobUrl,log);
