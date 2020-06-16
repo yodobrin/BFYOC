@@ -33,17 +33,12 @@ namespace BFYOC
                 {
                     string messageBody = Encoding.UTF8.GetString(eventData.Body.Array, eventData.Body.Offset, eventData.Body.Count);
 
-                    // Replace these two lines with your processing logic.
-                    log.LogInformation($"C# Event Hub trigger function processed a message: {messageBody}");
-                    dynamic salesEvents = JsonConvert.DeserializeObject(messageBody);
-                    foreach (dynamic posevent in salesEvents)
-                    {
-                        string newId = Guid.NewGuid().ToString();
-                        //posevent.id = newId;
-                        ItemResponse<Object> orderResponse = await cosmosContainer.CreateItemAsync<Object>(posevent, new PartitionKey(newId));
-                        log.LogInformation($"insert a pos event with id:{newId}");
-                    }                
-                    // await Task.Yield();
+                    log.LogInformation($"BatchSalesHandlerfunction processed a message: {messageBody}");
+                    dynamic salesEvent = JsonConvert.DeserializeObject(messageBody);
+                    string newId = Guid.NewGuid().ToString();
+                    ItemResponse<Object> orderResponse = await cosmosContainer.CreateItemAsync<Object>(salesEvent, new PartitionKey(newId));
+                    log.LogInformation($"insert a pos event with id:{newId}");
+
                 }
                 catch (Exception e)
                 {

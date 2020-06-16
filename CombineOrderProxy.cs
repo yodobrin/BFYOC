@@ -28,24 +28,29 @@ namespace BFYOC
 
             string requestBody = await new StreamReader(req.Body,Encoding.UTF8).ReadToEndAsync();
 
-            string response = await CallCombine(requestBody,log);    
+            //string response = await CallCombine(requestBody,log);    
 
             string DatabaseName = Environment.GetEnvironmentVariable("COSMOS_DB_NAME");
-            string CollectionName = Environment.GetEnvironmentVariable("COSMOS_ORDERS");
+            string CollectionName = Environment.GetEnvironmentVariable("COSMOS_SALES");
             string ConnectionStringSetting = Environment.GetEnvironmentVariable("COSMOS_CS");
             CosmosClient cosmosClient = new CosmosClient(ConnectionStringSetting);
             Container cosmosContainer = cosmosClient.GetContainer(DatabaseName,CollectionName);
 
-            dynamic orders = JsonConvert.DeserializeObject(response);
-            foreach (dynamic order in orders)
-            {
-                string newId = Guid.NewGuid().ToString();
-                order.id = newId;
-                ItemResponse<Object> orderResponse = await cosmosContainer.CreateItemAsync<Object>(order, new PartitionKey(newId));
-                log.LogInformation($"insert an order {order?.salesNumber} to orders");
-            }                    
+            dynamic orders = JsonConvert.DeserializeObject(requestBody);
+            string newId = Guid.NewGuid().ToString();
+            orders.id = newId;
+            ItemResponse<Object> orderResponse = await cosmosContainer.CreateItemAsync<Object>(orders, new PartitionKey(newId));
+            log.LogInformation($"events are: {orders.ToString()}");
+            // foreach (dynamic order in orders)
+            // {
+            //     string newId = Guid.NewGuid().ToString();
+            //     //order.id = newId;
+            //     log.LogInformation($"event is: {order.ToString()}");
+            //     ItemResponse<Object> orderResponse = await cosmosContainer.CreateItemAsync<Object>(order, new PartitionKey(newId));
+            //     // log.LogInformation($"insert an order {order?.salesNumber} to orders");
+            // }                    
 
-            return new OkObjectResult(response);
+            return new OkObjectResult("cos emek");
         }
 
         private static async Task<string> CallCombine(string payload, ILogger log)
