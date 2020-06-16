@@ -15,13 +15,12 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.IO;
+using Microsoft.Azure.Cosmos;
 
 namespace BFYOC
 {
     public static class OrderLanding
     {
-        // static string [] FILE_NAMES = {"OrderLineItems","OrderHeaderDetails","ProductInformation"};
-        // static string FILE_TYPE = ".csv";
         [FunctionName("OrderLanding")]
         public static async Task Run([EventGridTrigger]EventGridEvent eventGridEvent, ILogger log)
         {            
@@ -43,19 +42,36 @@ namespace BFYOC
                 counter ++;
             }
             log.LogInformation($"counted {counter} files with the unique {unique}");
+            string result = "";
             if(counter == 3)
             {
                 log.LogInformation("Order landing - found 3 files calling the combine");
 
-                string result = await CallCombine(unique,log);
+                result = await CallCombine(unique,log);
 
                 log.LogInformation($"got combined result: {result}");
+            }else return;
+            string DatabaseName = Environment.GetEnvironmentVariable("COSMOS_DB_NAME");
+            string CollectionName = Environment.GetEnvironmentVariable("COSMOS_ORDERS");
+            string ConnectionStringSetting = Environment.GetEnvironmentVariable("COSMOS_CS");
+            CosmosClient cosmosClient = new CosmosClient(ConnectionStringSetting);
+            Container cosmosContainer = cosmosClient.GetContainer(DatabaseName,CollectionName);
+
+            dynamic orders = JsonConvert.DeserializeObject(result);
+            foreach (dynamic order in orders)
+            {
+                string newId = Guid.NewGuid().ToString();
+                order.id = newId;
+                ItemResponse<Object> orderResponse = await cosmosContainer.CreateItemAsync<Object>(order, new PartitionKey(newId));
+                log.LogInformation($"insert an order with sales number: {order?.salesNumber} to orders with id:{newId}");
             }
+
         }
+
+     
 
         private static string GetUniqueId(string blobUrl,ILogger log)
         {
-            //"url": "https://orderlanding.blob.core.windows.net/landing/20200615131600-ProductInformation.csv"
             string [] splitted = blobUrl.Split("/");
             int lenght = (splitted!=null)?splitted.Length:0;
             log.LogInformation($"trying to extract from {blobUrl} by index {lenght}");

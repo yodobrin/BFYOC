@@ -12,6 +12,7 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
+using Microsoft.Azure.Cosmos;
 
 
 namespace BFYOC
@@ -27,7 +28,22 @@ namespace BFYOC
 
             string requestBody = await new StreamReader(req.Body,Encoding.UTF8).ReadToEndAsync();
 
-            string response = await CallCombine(requestBody,log);            
+            string response = await CallCombine(requestBody,log);    
+
+            string DatabaseName = Environment.GetEnvironmentVariable("COSMOS_DB_NAME");
+            string CollectionName = Environment.GetEnvironmentVariable("COSMOS_ORDERS");
+            string ConnectionStringSetting = Environment.GetEnvironmentVariable("COSMOS_CS");
+            CosmosClient cosmosClient = new CosmosClient(ConnectionStringSetting);
+            Container cosmosContainer = cosmosClient.GetContainer(DatabaseName,CollectionName);
+
+            dynamic orders = JsonConvert.DeserializeObject(response);
+            foreach (dynamic order in orders)
+            {
+                string newId = Guid.NewGuid().ToString();
+                order.id = newId;
+                ItemResponse<Object> orderResponse = await cosmosContainer.CreateItemAsync<Object>(order, new PartitionKey(newId));
+                log.LogInformation($"insert an order {order?.salesNumber} to orders");
+            }                    
 
             return new OkObjectResult(response);
         }
