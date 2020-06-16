@@ -39,7 +39,7 @@ namespace BFYOC
                     foreach (dynamic posevent in salesEvents)
                     {
                         string newId = Guid.NewGuid().ToString();
-                        posevent.id = newId;
+                        //posevent.id = newId;
                         ItemResponse<Object> orderResponse = await cosmosContainer.CreateItemAsync<Object>(posevent, new PartitionKey(newId));
                         log.LogInformation($"insert a pos event with id:{newId}");
                     }                
