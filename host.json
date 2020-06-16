@@ -7,5 +7,14 @@
                 "isEnabled": true
             }
         }
+    },
+    "extensions": {
+        "eventHubs": {
+            "batchCheckpointFrequency": 5,
+            "eventProcessorOptions": {
+                "maxBatchSize": 64,
+                "prefetchCount": 256
+            }
+        }
     }
 }
