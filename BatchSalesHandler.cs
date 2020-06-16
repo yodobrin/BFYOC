@@ -36,6 +36,7 @@ namespace BFYOC
                     log.LogInformation($"BatchSalesHandlerfunction processed a message: {messageBody}");
                     dynamic salesEvent = JsonConvert.DeserializeObject(messageBody);
                     string newId = Guid.NewGuid().ToString();
+                    salesEvent.id = newId;
                     ItemResponse<Object> orderResponse = await cosmosContainer.CreateItemAsync<Object>(salesEvent, new PartitionKey(newId));
                     log.LogInformation($"insert a pos event with id:{newId}");
 
