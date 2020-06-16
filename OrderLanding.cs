@@ -13,13 +13,15 @@ using Newtonsoft.Json;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Text;
+using System.IO;
 
 namespace BFYOC
 {
     public static class OrderLanding
     {
-        static string [] FILE_NAMES = {"OrderLineItems","OrderHeaderDetails","ProductInformation"};
-        static string FILE_TYPE = ".csv";
+        // static string [] FILE_NAMES = {"OrderLineItems","OrderHeaderDetails","ProductInformation"};
+        // static string FILE_TYPE = ".csv";
         [FunctionName("OrderLanding")]
         public static async Task Run([EventGridTrigger]EventGridEvent eventGridEvent, ILogger log)
         {            
@@ -79,16 +81,25 @@ namespace BFYOC
         {
             HttpClient client = new HttpClient();
             string combineUrl = Environment.GetEnvironmentVariable("COMBINE_URI");
+            client.BaseAddress = new Uri(combineUrl);
+            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));//ACCEPT header            
             var payload = CreateCombineRequest(unique,log);
-            log.LogInformation($"calling uri: {combineUrl} with payload: {payload}");
-            HttpResponseMessage response = await client.PostAsJsonAsync(combineUrl,payload);
-            log.LogInformation($"got response: {response.StatusCode}");
-            var responseString = await response.Content.ReadAsStringAsync();
-            log.LogInformation($"got in combine:{responseString}");
 
+            StringContent content = new StringContent(payload,Encoding.UTF8,"application/json");
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post,"");
+            request.Content = content;
+            log.LogInformation($"calling uri: {combineUrl} with payload: {content.ToString()}");
+            HttpResponseMessage response = await client.SendAsync(request);
+            Stream receiveStream = await response.Content.ReadAsStreamAsync();
+            StreamReader readStream = new StreamReader (receiveStream, Encoding.UTF8);
+            string responseString = readStream.ReadToEnd();            
+                        
+            log.LogInformation($"got response: {response.StatusCode}");
+            
+            log.LogInformation($"got in combine:{responseString}");
             
             return responseString;
-            // return 200;
+            
         }
     }
 }
