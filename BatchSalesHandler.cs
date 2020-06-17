@@ -67,24 +67,33 @@ namespace BFYOC
         {
             log.LogInformation("BatchSalesHandler:SendToReceiptTopic");
             string pdfpath = salesEvent?.header.receiptUrl;
-            if(String.IsNullOrEmpty(pdfpath)) return null;
+            if(String.IsNullOrEmpty(pdfpath)) return "no receipt";
             string ServiceBusConnectionString = Environment.GetEnvironmentVariable("SB_TOPIC_CS");;
             string TopicName = Environment.GetEnvironmentVariable("SB_TOPIC_NAME");;
             ITopicClient topicClient = new TopicClient(ServiceBusConnectionString, TopicName);
-            string messageBody = "{god dam}";
+            // string messageBody = "{god dam}";
             dynamic receipt = new System.Dynamic.ExpandoObject();
-            receipt.totalItems = salesEvent?.header.totalItems;
+            dynamic products = salesEvent?.details;
+
+            receipt.totalItems = CountProducts(products);
             receipt.totalCost = salesEvent?.header.totalCost;
             receipt.salesNumber = salesEvent?.header.salesNumber;
             receipt.salesDate = salesEvent?.header.salesDate;
             receipt.storeLocation = salesEvent?.header.storeLocation;
             receipt.receiptUrl = salesEvent?.header.receiptUrl;
-            string fuck = JsonConvert.DeserializeObject(receipt).toString();
+            
+            string fuck = JsonConvert.SerializeObject(receipt);
             log.LogInformation($"BatchSalesHandler sending to topic {TopicName} the message:{fuck}");
-            var message = new Message(Encoding.UTF8.GetBytes(messageBody));
+            var message = new Message(Encoding.UTF8.GetBytes(fuck));
             await topicClient.SendAsync(message);
 
             return fuck;
+        }
+        private static int CountProducts(dynamic products)
+        {
+            int counter = 0;
+            foreach (dynamic product in products) counter++;
+            return counter;
         }
     }
 }
