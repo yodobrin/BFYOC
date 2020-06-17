@@ -8,6 +8,10 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Microsoft.Azure.Cosmos;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.Azure.ServiceBus;
 
 
 using BFYOC.Models;
@@ -56,6 +60,29 @@ namespace BFYOC
 
             if (exceptions.Count == 1)
                 throw exceptions.Single();
+        }
+
+        public static async Task<string> SendToReceiptTopic(dynamic salesEvent, ILogger log)
+        {
+            string pdfpath = salesEvent?.header.receiptUrl;
+            if(String.IsNullOrEmpty(pdfpath)) return null;
+            string ServiceBusConnectionString = Environment.GetEnvironmentVariable("SB_TOPIC_CS");;
+            string TopicName = Environment.GetEnvironmentVariable("SB_TOPIC_NAME");;
+            ITopicClient topicClient = new TopicClient(ServiceBusConnectionString, TopicName);
+            string messageBody = "{god dam}";
+            dynamic receipt = new System.Dynamic.ExpandoObject();
+            receipt.totalItems = salesEvent?.header.totalItems;
+            receipt.totalCost = salesEvent?.header.totalCost;
+            receipt.salesNumber = salesEvent?.header.salesNumber;
+            receipt.salesDate = salesEvent?.header.salesDate;
+            receipt.storeLocation = salesEvent?.header.storeLocation;
+            receipt.receiptUrl = salesEvent?.header.receiptUrl;
+            string fuck = JsonConvert.DeserializeObject(receipt).toString();
+            log.LogInformation($"BatchSalesHandler sending to topic {TopicName} the message:{fuck}");
+            var message = new Message(Encoding.UTF8.GetBytes(messageBody));
+            await topicClient.SendAsync(message);
+
+            return fuck;
         }
     }
 }

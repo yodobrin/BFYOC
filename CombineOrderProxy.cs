@@ -13,7 +13,11 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using Microsoft.Azure.Cosmos;
-
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Web;
+using System.Text;
+using System.IO;
 
 namespace BFYOC
 {
@@ -71,6 +75,38 @@ namespace BFYOC
 
             return res;
 
+        }
+
+        private static async Task<string> CallPdf2Base64(string pdfpath, ILogger log)
+        {
+            HttpClient client = new HttpClient();
+            string baseurl = Environment.GetEnvironmentVariable("PDF2BASE64_URI");
+            string code = Environment.GetEnvironmentVariable("PDF2BASE64_CODE");
+            
+            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));//ACCEPT header            
+            
+
+            // StringContent content = new StringContent(payload,Encoding.UTF8,"application/json");
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get,"");
+            var query = HttpUtility.ParseQueryString(string.Empty);
+            query["code"] = code;
+            query["pdfurl"] = pdfpath;
+            
+            string funcurl = $"{baseurl}?{query.ToString()}";
+
+            client.BaseAddress = new Uri(funcurl);
+            log.LogInformation($"BatchSalesHandler calling uri: {funcurl} ");
+            HttpResponseMessage response = await client.SendAsync(request);
+            Stream receiveStream = await response.Content.ReadAsStreamAsync();
+            StreamReader readStream = new StreamReader (receiveStream, Encoding.UTF8);
+            string responseString = readStream.ReadToEnd();            
+                        
+            log.LogInformation($"BatchSalesHandler: got response status: {response.StatusCode}");
+            
+            log.LogInformation($"BatchSalesHandler got in string:{responseString}");
+            
+            return responseString;
+            
         }
     }
     
