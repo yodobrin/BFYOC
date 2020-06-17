@@ -78,8 +78,8 @@ namespace BFYOC
             receipt.totalItems = CountProducts(products);
             receipt.totalCost = salesEvent?.header.totalCost;
             receipt.salesNumber = salesEvent?.header.salesNumber;
-            receipt.salesDate = salesEvent?.header.salesDate;
-            receipt.storeLocation = salesEvent?.header.storeLocation;
+            receipt.salesDate = salesEvent?.header.dateTime;
+            receipt.storeLocation = salesEvent?.header.locationId;
             receipt.receiptUrl = salesEvent?.header.receiptUrl;
             
             string fuck = JsonConvert.SerializeObject(receipt);
