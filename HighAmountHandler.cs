@@ -44,7 +44,7 @@ namespace BFYOC
             string containerName = Environment.GetEnvironmentVariable("SEC_SA_CONTAINER_HIGE");
             BlobServiceClient blobServiceClient = new BlobServiceClient(connectionString);
             BlobContainerClient containerClient = blobServiceClient.GetBlobContainerClient(containerName); 
-            string blobName = $"{tosave.SalesNumber}";
+            string blobName = $"{tosave.SalesNumber}-{Guid.NewGuid().ToString()}";
             System.IO.MemoryStream blobstreamcontent = new System.IO.MemoryStream(Encoding.UTF8.GetBytes(blobcontent));
 
             await containerClient.UploadBlobAsync(blobName,blobstreamcontent);
