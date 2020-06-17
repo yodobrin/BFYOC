@@ -42,8 +42,9 @@ namespace BFYOC
                     string newId = Guid.NewGuid().ToString();
                     salesEvent.id = newId;
                     ItemResponse<Object> orderResponse = await cosmosContainer.CreateItemAsync<Object>(salesEvent, new PartitionKey(newId));
-                    log.LogInformation($"insert a pos event with id:{newId}");
-
+                    log.LogInformation($"BatchSalesHandlerfunction:insert a pos event with id:{newId}");
+                    string res = await SendToReceiptTopic(salesEvent,log);
+                    log.LogInformation($"BatchSalesHandlerfunction: called send to receipt with result {res}");
                 }
                 catch (Exception e)
                 {
