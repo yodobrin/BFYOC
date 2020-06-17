@@ -64,6 +64,7 @@ namespace BFYOC
 
         public static async Task<string> SendToReceiptTopic(dynamic salesEvent, ILogger log)
         {
+            log.LogInformation("BatchSalesHandler:SendToReceiptTopic");
             string pdfpath = salesEvent?.header.receiptUrl;
             if(String.IsNullOrEmpty(pdfpath)) return null;
             string ServiceBusConnectionString = Environment.GetEnvironmentVariable("SB_TOPIC_CS");;
