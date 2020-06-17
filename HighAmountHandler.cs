@@ -9,10 +9,9 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using Microsoft.Azure.Cosmos;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Web;
-using System.Text;
+
+
+
 using System.IO;
 using System.Threading.Tasks;
 using Azure.Storage.Blobs;
@@ -24,7 +23,7 @@ namespace BFYOC
     public static class HighAmountHandler
     {
         [FunctionName("HighAmountHandler")]
-        public static async Task Run([ServiceBusTrigger("receipts", "high-amount", Connection = "SB_TOPIC_CS")]string mySbMsg, ILogger log)
+        public static async Task Run([ServiceBusTrigger("receipts", "high", Connection = "SB_TOPIC_CS")]string mySbMsg, ILogger log)
         {
             log.LogInformation($"HighAmountHandler processed message: {mySbMsg}");
             dynamic salesEvent = JsonConvert.DeserializeObject(mySbMsg);
@@ -33,7 +32,7 @@ namespace BFYOC
             dynamic tosave = new System.Dynamic.ExpandoObject();
             tosave.Store = salesEvent?.storeLocation;
             tosave.SalesNumber = salesEvent?.salesNumber;
-            tosave.TotalCost = salesEvent?.totalCost;
+            tosave.TotalCost = CalcCost(salesEvent?.totalCost);
             tosave.Items = salesEvent?.totalItems;
             tosave.SalesDate = salesEvent?.salesDate;
             tosave.ReceiptImage = base64;
@@ -51,7 +50,12 @@ namespace BFYOC
             await containerClient.UploadBlobAsync(blobName,blobstreamcontent);
         }
 
-
+        private static double CalcCost(dynamic cost)
+        {
+            string scost = cost.ToString();            
+            if(string.IsNullOrEmpty(scost)) return 0;
+            return double.Parse(scost);
+        }
         private static async Task<string> CallPdf2Base64(string pdfpath, ILogger log)
         {
             HttpClient client = new HttpClient();

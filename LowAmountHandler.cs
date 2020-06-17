@@ -30,7 +30,7 @@ namespace BFYOC
     public static class LowAmountHandler
     {
         [FunctionName("LowAmountHandler")]
-        public static async Task Run([ServiceBusTrigger("receipts", "low-amount", Connection = "SB_TOPIC_CS")]string mySbMsg, ILogger log)
+        public static async Task Run([ServiceBusTrigger("receipts", "low", Connection = "SB_TOPIC_CS")]string mySbMsg, ILogger log)
         {
             log.LogInformation($"LowAmountHandler processed message: {mySbMsg}");
             dynamic salesEvent = JsonConvert.DeserializeObject(mySbMsg);
@@ -39,7 +39,7 @@ namespace BFYOC
             dynamic tosave = new System.Dynamic.ExpandoObject();
             tosave.Store = salesEvent?.storeLocation;
             tosave.SalesNumber = salesEvent?.salesNumber;
-            tosave.TotalCost = salesEvent?.totalCost;
+            tosave.TotalCost = CalcCost(salesEvent?.totalCost);
             tosave.Items = salesEvent?.totalItems;
             tosave.SalesDate = salesEvent?.salesDate;
             
@@ -55,6 +55,12 @@ namespace BFYOC
             System.IO.MemoryStream blobstreamcontent = new System.IO.MemoryStream(Encoding.UTF8.GetBytes(blobcontent));
 
             await containerClient.UploadBlobAsync(blobName,blobstreamcontent);
+        }
+        private static double CalcCost(dynamic cost)
+        {
+            string scost = cost.ToString();
+            if(string.IsNullOrEmpty(scost)) return 0;
+            return double.Parse(scost);
         }
     }
 }

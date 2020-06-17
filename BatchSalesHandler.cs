@@ -8,9 +8,7 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Microsoft.Azure.Cosmos;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
+
 using Microsoft.Azure.ServiceBus;
 
 
@@ -76,7 +74,7 @@ namespace BFYOC
             dynamic products = salesEvent?.details;
 
             receipt.totalItems = CountProducts(products);
-            receipt.totalCost = salesEvent?.header.totalCost;
+            receipt.totalCost = CalcCost(salesEvent?.header.totalCost);
             receipt.salesNumber = salesEvent?.header.salesNumber;
             receipt.salesDate = salesEvent?.header.dateTime;
             receipt.storeLocation = salesEvent?.header.locationId;
@@ -85,9 +83,17 @@ namespace BFYOC
             string fuck = JsonConvert.SerializeObject(receipt);
             log.LogInformation($"BatchSalesHandler sending to topic {TopicName} the message:{fuck}");
             var message = new Message(Encoding.UTF8.GetBytes(fuck));
+            message.UserProperties.Add("totalCost",receipt.totalCost);
+            message.ContentType = System.Net.Mime.MediaTypeNames.Application.Json;
             await topicClient.SendAsync(message);
 
-            return fuck;
+            return "receipt attached.";
+        }
+        private static double CalcCost(dynamic cost)
+        {
+            string scost = cost.ToString();
+            if(string.IsNullOrEmpty(scost)) return 0;
+            return double.Parse(scost);
         }
         private static int CountProducts(dynamic products)
         {
