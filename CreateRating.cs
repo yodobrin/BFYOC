@@ -12,6 +12,10 @@ using System.Net.Http.Headers;
 using Microsoft.Azure.Cosmos;
 using System.Collections.Generic;
 
+using Azure;
+using System.Globalization;
+using Azure.AI.TextAnalytics;
+
 using BFYOC.Models;
 
 // {
@@ -64,13 +68,29 @@ namespace BFYOC.Functions
                 string errorresponse = "One or more items does not exist, please try again";
                 return new NotFoundObjectResult(errorresponse);
             }
+            TextSentiment score = GetSentiment(aRating.userNotes,log);
+            aRating.Sentiment = score;
             string okresponse = JsonConvert.SerializeObject(aRating);
+
+            
+
 
             ItemResponse<Rating> ratingResponse = await cosmosContainer.CreateItemAsync<Rating>(aRating, new PartitionKey(aRating.id));                        
 
             return new OkObjectResult(okresponse);
         }
 
+        private static TextSentiment GetSentiment(string usertext, ILogger log)
+        {
+            AzureKeyCredential credentials = new AzureKeyCredential(Environment.GetEnvironmentVariable("COG_KEY"));
+            Uri endpoint = new Uri(Environment.GetEnvironmentVariable("COG_EP"));
+            var client = new TextAnalyticsClient(endpoint, credentials);
+            log.LogInformation($" gor sentence to analyze: {usertext}");
+            DocumentSentiment documentSentiment = client.AnalyzeSentiment(usertext);
+            TextSentiment ts = documentSentiment.Sentiment;
+            log.LogInformation($"CreateRating:Sentiment Score is: {ts}");
+            return ts;            
+        }
         private static async Task<Boolean> ValidateUserId(String userid,ILogger log)
         {
             HttpClient client = new HttpClient();

@@ -1,4 +1,5 @@
 using System;
+using Azure.AI.TextAnalytics;
 
 namespace BFYOC.Models
 {
@@ -11,6 +12,8 @@ namespace BFYOC.Models
         public DateTime timestamp;
         public string id;
         public string userId;
+
+        public TextSentiment Sentiment;
 
     }
 }
