@@ -13,7 +13,7 @@ namespace BFYOC.Models
         public string id;
         public string userId;
 
-        public TextSentiment Sentiment;
+        public string Sentiment;
 
     }
 }

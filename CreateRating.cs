@@ -69,7 +69,7 @@ namespace BFYOC.Functions
                 return new NotFoundObjectResult(errorresponse);
             }
             TextSentiment score = GetSentiment(aRating.userNotes,log);
-            aRating.Sentiment = score;
+            aRating.Sentiment = score.ToString();
             string okresponse = JsonConvert.SerializeObject(aRating);
 
             
